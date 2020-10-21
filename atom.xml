@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>smallblack</title>
+  
+  <subtitle>Good Luck! Jan.</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="https://sma11black.github.io/"/>
+  <updated>2020-06-02T05:05:50.000Z</updated>
+  <id>https://sma11black.github.io/</id>
+  
+  <author>
+    <name>smallblack</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Keep A Container Running</title>
+    <link href="https://sma11black.github.io/2020/06/02/keep-a-container-running/"/>
+    <id>https://sma11black.github.io/2020/06/02/keep-a-container-running/</id>
+    <published>2020-06-02T05:05:50.000Z</published>
+    <updated>2020-06-02T05:05:50.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>The only job of some containers is to keep running and people can exec into it and execute some commands.</p><p>Too keep the containers running, there are some ways to do this.<br><a id="more"></a></p><blockquote><p><a href="https://github.com/docker/compose/issues/1926" target="_blank" rel="noopener">Issue #1926: Keep a container running in compose</a></p></blockquote><h2 id="Infinity-Sleep"><a href="#Infinity-Sleep" class="headerlink" title="Infinity Sleep"></a>Infinity Sleep</h2><p>At the end of entrypoint script, add an infinity sleep.</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> [ <span class="literal">true</span> ]; <span class="keyword">do</span></span><br><span class="line">    sleep 3600;</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure><p>or if the container’s OS supports,</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sleep infinity</span><br></pre></td></tr></table></figure><h2 id="Throws-away-anything-from-dev-null"><a href="#Throws-away-anything-from-dev-null" class="headerlink" title="Throws away anything from /dev/null"></a>Throws away anything from <code>/dev/null</code></h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tail -f /dev/null</span><br></pre></td></tr></table></figure><p>The only problem is that neither of those commands handles <strong>SIGINT</strong> properly, so they won’t respond to <code>stop</code> in a timely manner.</p><h2 id=""><a href="#" class="headerlink" title=" "></a> </h2><p>Here’s how you get the container to stop gracefully. In your entrypoint script:</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">trap</span> : TERM INT</span><br><span class="line">tail -f /dev/null &amp; <span class="built_in">wait</span></span><br></pre></td></tr></table></figure><p>The <code>tail</code> goes at the end of your script, the <code>trap</code> can go anywhere, but usually is one of the first lines.</p><p><em>Elaborate on the solution</em>:</p><p><code>trap : TERM INT</code>: basically means “catch”(or trap) all TERM and INT signals(both are commands that gracefully kill the process). The <code>:</code> in the trap is treated as <code>true</code> in all POSIX shells. It’s there in case something else, another script or program, set up its own trap before this one. The empty trap clears out the other old ones and ensures the signals belong to this script.</p><p>After it ensures the signals aren’t going to trigger something else, the <code>tail</code> just there so we can use <code>wait</code>, which is a small program that is known to handle signals well and generally does the right thing as its signal handling behavior is defined in POSIX: <a href="http://man7.org/linux/man-pages/man2/waitpid.2.html" target="_blank" rel="noopener">Linux Programmer’s Manual - WAIT(2)</a>.</p><p><code>tail</code> will never finish as it’s following an empty device that never returns anything throws away anything it gets (<code>/dev/null</code>).</p><p>This script is just trying to account for unclean environments and be POSIX compatible.</p><h2 id="While-loop"><a href="#While-loop" class="headerlink" title="While loop"></a>While loop</h2><p>Because <code>tail</code> will still causes some file operations from time to time. So can use the following one-liner to keep a container alive.<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Ah, ha, ha, ha, stayin' alive...</span></span><br><span class="line"><span class="keyword">while</span> :; <span class="keyword">do</span> :; <span class="keyword">done</span> &amp; <span class="built_in">kill</span> -STOP $! &amp;&amp; <span class="built_in">wait</span> $!</span><br></pre></td></tr></table></figure></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;The only job of some containers is to keep running and people can exec into it and execute some commands.&lt;/p&gt;
+&lt;p&gt;Too keep the containers running, there are some ways to do this.&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="CS" scheme="https://sma11black.github.io/categories/CS/"/>
+    
+      <category term="O&amp;M" scheme="https://sma11black.github.io/categories/CS/O-M/"/>
+    
+    
+      <category term="Tips" scheme="https://sma11black.github.io/tags/Tips/"/>
+    
+      <category term="Docker" scheme="https://sma11black.github.io/tags/Docker/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>IDEA中Maven依赖下载失败解决方案</title>
+    <link href="https://sma11black.github.io/2020/02/24/maven/"/>
+    <id>https://sma11black.github.io/2020/02/24/maven/</id>
+    <published>2020-02-24T17:26:00.000Z</published>
+    <updated>2020-02-24T17:26:00.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>由于网络问题，Maven下载一半中断之后，重新导入不会再次下载有问题的依赖包。<br>这里是一些网络上收集到的实测有效方法，同时还记录一些思路。<br><a id="more"></a></p><h2 id="收集的几种解决方案"><a href="#收集的几种解决方案" class="headerlink" title="收集的几种解决方案"></a>收集的几种解决方案</h2><h3 id="使用内置IDEA-Maven工具更新依赖"><a href="#使用内置IDEA-Maven工具更新依赖" class="headerlink" title="使用内置IDEA Maven工具更新依赖"></a>使用内置IDEA Maven工具更新依赖</h3><ol><li>打开右侧Maven Tool Window（如果没有，在View - Tool Windows中打开它）</li><li>选择工具栏Excute Maven Goal工具</li><li>输入<code>mvn -U idea:idea</code>命令并运行</li></ol><h3 id="删除失败的依赖缓存"><a href="#删除失败的依赖缓存" class="headerlink" title="删除失败的依赖缓存"></a>删除失败的依赖缓存</h3><blockquote><p>Maven本地仓库默认位于<code>%USERPROFILE%/.m2/repository</code>目录下</p></blockquote><p>删除指定依赖包的<code>.lastUpdated</code>文件</p><h3 id="终极解决方法"><a href="#终极解决方法" class="headerlink" title="终极解决方法"></a>终极解决方法</h3><ul><li><p>如果知道下载失败的的依赖包名字</p><p>删除指定的依赖包</p></li><li><p>!无知的暴力方法（谨慎使用）</p><p>删除整个Maven本地仓库</p></li></ul><h3 id="有待考虑的优化方法"><a href="#有待考虑的优化方法" class="headerlink" title="有待考虑的优化方法"></a>有待考虑的优化方法</h3><ol><li>搭建自己的服务器mvn仓库？</li><li>搭建mvn代理仓库？</li><li>使用国内maven镜像仓库</li></ol>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;由于网络问题，Maven下载一半中断之后，重新导入不会再次下载有问题的依赖包。&lt;br&gt;这里是一些网络上收集到的实测有效方法，同时还记录一些思路。&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="CS" scheme="https://sma11black.github.io/categories/CS/"/>
+    
+      <category term="Java" scheme="https://sma11black.github.io/categories/CS/Java/"/>
+    
+    
+      <category term="Java" scheme="https://sma11black.github.io/tags/Java/"/>
+    
+      <category term="Maven" scheme="https://sma11black.github.io/tags/Maven/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Test Post</title>
+    <link href="https://sma11black.github.io/2020/02/09/test/"/>
+    <id>https://sma11black.github.io/2020/02/09/test/</id>
+    <published>2020-02-09T23:36:57.000Z</published>
+    <updated>2020-02-09T23:36:57.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Hello Test.<br>Preamble Text.<br><a id="more"></a><br>正文</p><h2 id="Image"><a href="#Image" class="headerlink" title="Image"></a>Image</h2><p><img data-src="http://cn.naturewallpaperfree.com/dongwu-gou/ziran-bizhi-1920x1080-3619-6e3dbef0.jpg" alt="avatar"></p><h2 id="Math-Equations"><a href="#Math-Equations" class="headerlink" title="Math Equations"></a>Math Equations</h2><script type="math/tex; mode=display">\begin{equation} \label{eq1}e=mc^2\end{equation}</script><p>The famous matter-energy equation $\eqref{eq1}$ proposed by Einstein…</p><!-- This post will render the Math Equations -->]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Hello Test.&lt;br&gt;Preamble Text.&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="Test" scheme="https://sma11black.github.io/categories/Test/"/>
+    
+      <category term="SubTest" scheme="https://sma11black.github.io/categories/Test/SubTest/"/>
+    
+      <category term="2nd Test" scheme="https://sma11black.github.io/categories/2nd-Test/"/>
+    
+    
+      <category term="Testing" scheme="https://sma11black.github.io/tags/Testing/"/>
+    
+      <category term="Another Tag" scheme="https://sma11black.github.io/tags/Another-Tag/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Hello World</title>
+    <link href="https://sma11black.github.io/2019/12/21/hello-world/"/>
+    <id>https://sma11black.github.io/2019/12/21/hello-world/</id>
+    <published>2019-12-21T20:46:25.000Z</published>
+    <updated>2020-02-06T04:32:25.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+</feed>
